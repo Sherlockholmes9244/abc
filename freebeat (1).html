@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreeBeat — Reklamsız Müzik</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --pink:#e040fb;--pink-d:#ab47bc;--cyan:#00e5ff;--green:#1db954;
+  --orange:#ff6d00;--bg:#0a0a0f;--sidebar:#0f0f16;
+  --border:rgba(255,255,255,0.08);--text:#f0eee8;
+  --muted:rgba(255,255,255,0.45);--dim:rgba(255,255,255,0.2);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+.orbs{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);opacity:0.1;animation:drift 10s ease-in-out infinite alternate}
+.o1{width:400px;height:400px;background:var(--pink);top:-100px;left:-80px}
+.o2{width:300px;height:300px;background:var(--cyan);top:35%;right:-80px;animation-delay:3s}
+.o3{width:250px;height:250px;background:var(--orange);bottom:0;left:10%;animation-delay:6s}
+@keyframes drift{0%{transform:translate(0,0)}100%{transform:translate(20px,-25px)}}
+.layout{display:flex;flex:1;overflow:hidden;position:relative;z-index:1}
+.sidebar{width:300px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:18px 16px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.logo-row{display:flex;align-items:center;gap:11px;margin-bottom:14px}
+.logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--pink),var(--cyan));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;flex-shrink:0}
+.brand{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;letter-spacing:-.5px}
+.brand span{color:var(--pink)}
+.tab-row{display:flex;gap:5px}
+.tab{flex:1;padding:7px 5px;border-radius:9px;border:none;background:transparent;color:var(--muted);font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:background .2s,color .2s;text-align:center}
+.tab.active{background:rgba(224,64,251,0.18);color:var(--pink)}
+.tab:hover:not(.active){background:rgba(255,255,255,0.06);color:var(--text)}
+.panel{display:none;flex-direction:column;flex:1;overflow:hidden}
+.panel.active{display:flex}
+.sp-wrap{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0}
+.sp-input{width:100%;padding:9px 12px;border-radius:11px;border:1.5px solid var(--border);background:rgba(255,255,255,0.06);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s;margin-bottom:7px}
+.sp-input:focus{border-color:var(--green)}
+.sp-input::placeholder{color:var(--dim)}
+.sp-btn{width:100%;padding:9px;border-radius:11px;border:none;background:var(--green);color:#fff;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;transition:opacity .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.sp-btn:hover{opacity:.88}
+.sp-btn:disabled{opacity:.5;cursor:not-allowed}
+.sp-info{padding:8px 14px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--border);flex-shrink:0;line-height:1.5}
+.sp-info strong{color:var(--text)}
+.track-list{flex:1;overflow-y:auto;padding:6px}
+.track-list::-webkit-scrollbar{width:3px}
+.track-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:3px}
+.ti{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;cursor:pointer;transition:background .15s;user-select:none}
+.ti:hover{background:rgba(255,255,255,0.07)}
+.ti.active{background:rgba(224,64,251,0.18)}
+.ti-num{width:18px;font-size:10px;color:var(--dim);text-align:center;flex-shrink:0}
+.ti.active .ti-num{display:none}
+.playing-anim{display:none;flex-shrink:0;gap:2px;align-items:flex-end;height:14px;width:18px;justify-content:center}
+.ti.active .playing-anim{display:flex}
+.bar{width:3px;border-radius:2px;background:var(--pink);animation:bounce .8s ease infinite alternate}
+.bar:nth-child(2){animation-delay:.2s}
+.bar:nth-child(3){animation-delay:.4s}
+@keyframes bounce{from{height:3px}to{height:12px}}
+.ti-thumb{width:36px;height:36px;border-radius:7px;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,0.08)}
+.ti-info{flex:1;min-width:0}
+.ti-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ti-art{font-size:11px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ti-dur{font-size:10px;color:var(--dim);flex-shrink:0}
+.s-wrap{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;gap:7px}
+.si{flex:1;padding:9px 12px;border-radius:11px;border:1.5px solid var(--border);background:rgba(255,255,255,0.06);color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+.si:focus{border-color:var(--pink)}
+.si::placeholder{color:var(--dim)}
+.sb{padding:9px 14px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--pink),var(--pink-d));color:#fff;font-size:12px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;white-space:nowrap}
+.sb:hover{opacity:.88}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.main-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--dim);font-size:14px;gap:14px;text-align:center;padding:2rem}
+.main-empty .emj{font-size:52px;opacity:.35}
+.main-empty p{line-height:1.6;max-width:280px}
+.loading-overlay{flex:1;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted);font-size:13px}
+.spinner{width:36px;height:36px;border:3px solid rgba(224,64,251,0.2);border-top-color:var(--pink);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#vframe{flex:1;width:100%;border:none;display:none;background:#000}
+.now-bar{height:58px;background:rgba(8,8,14,.98);border-top:1px solid var(--border);display:none;align-items:center;gap:12px;padding:0 16px;flex-shrink:0}
+.now-thumb{width:38px;height:38px;border-radius:7px;object-fit:cover;background:rgba(255,255,255,.1);flex-shrink:0}
+.now-info{flex:1;min-width:0}
+.now-title{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.now-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.now-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;background:rgba(0,229,255,.1);color:var(--cyan);border:1px solid rgba(0,229,255,.2);flex-shrink:0}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--cyan);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.skel{background:rgba(255,255,255,0.07);border-radius:6px;animation:shim 1.2s ease-in-out infinite alternate}
+@keyframes shim{from{opacity:.4}to{opacity:.85}}
+.srow{display:flex;align-items:center;gap:9px;padding:8px 9px;margin-bottom:2px}
+.empty-msg{padding:20px 14px;text-align:center;color:var(--dim);font-size:12px;line-height:1.6}
+.empty-msg .emj{font-size:26px;display:block;margin-bottom:8px;opacity:.4}
+</style>
+</head>
+<body>
+<div class="orbs"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-row">
+        <div class="logo">♫</div>
+        <div class="brand">Free<span>Beat</span></div>
+      </div>
+      <div class="tab-row">
+        <button class="tab active" id="tab-sp" onclick="switchTab('sp')">🎵 Playlist</button>
+        <button class="tab" id="tab-sr" onclick="switchTab('sr')">🔍 Ara</button>
+      </div>
+    </div>
+    <div class="panel active" id="panel-sp">
+      <div class="sp-wrap">
+        <input class="sp-input" id="sp-link" placeholder="Spotify playlist linki yapıştır..."/>
+        <button class="sp-btn" id="sp-btn" onclick="loadPlaylist()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/></svg>
+          Playlist Yükle
+        </button>
+      </div>
+      <div class="sp-info" id="sp-info" style="display:none"></div>
+      <div class="track-list" id="sp-list">
+        <div class="empty-msg"><span class="emj">📋</span>Spotify playlist linkini yapıştır.</div>
+      </div>
+    </div>
+    <div class="panel" id="panel-sr">
+      <div class="s-wrap">
+        <input class="si" id="q" placeholder="Şarkı veya sanatçı..." autocomplete="off"/>
+        <button class="sb" onclick="doSearch()">Ara</button>
+      </div>
+      <div class="track-list" id="sr-list">
+        <div class="empty-msg"><span class="emj">🔍</span>Şarkı veya sanatçı adı yaz.</div>
+      </div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="main-empty" id="main-empty">
+      <span class="emj">🎬</span>
+      <p>Sol taraftan bir şarkıya tıkla.<br>Burda reklamsız çalacak.</p>
+    </div>
+    <div class="loading-overlay" id="loading-overlay">
+      <div class="spinner"></div>
+      <span id="loading-text">Şarkı aranıyor...</span>
+    </div>
+    <iframe id="vframe"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+  </div>
+</div>
+<div class="now-bar" id="now-bar">
+  <img class="now-thumb" id="now-thumb" src="" alt=""/>
+  <div class="now-info">
+    <div class="now-title" id="now-title">—</div>
+    <div class="now-sub" id="now-sub"></div>
+  </div>
+  <span class="now-badge"><span class="dot"></span>Çalıyor</span>
+</div>
+
+<script>
+const YT_KEY    = 'AIzaSyDK8IRQZxTlDuHOUMbLc650FyiLOi7CRE4';
+const SP_ID     = 'dde628e9160f44f0bc60da7d10cae148';
+const SP_SECRET = '42912c36bcd1465bb99457e34f8eff1c';
+
+let spToken = null, spTokenExp = 0;
+let spTracks = [], srTracks = [];
+let activeEl = null;
+
+function switchTab(t) {
+  ['sp','sr'].forEach(x => {
+    document.getElementById('tab-'+x).classList.toggle('active', x===t);
+    document.getElementById('panel-'+x).classList.toggle('active', x===t);
+  });
+}
+
+async function getSpToken() {
+  if (spToken && Date.now() < spTokenExp) return spToken;
+  const res = await fetch('https://black-butterfly-4d2b.abdullahagzikucuk618.workers.dev/');
+  if (!res.ok) throw new Error('Proxy hatası: ' + res.status);
+  const d = await res.json();
+  if (!d.access_token) throw new Error('Token alınamadı: ' + JSON.stringify(d));
+  spToken = d.access_token;
+  spTokenExp = Date.now() + (d.expires_in - 60) * 1000;
+  return spToken;
+}
+
+function extractPID(input) {
+  const m = input.trim().match(/playlist\/([a-zA-Z0-9]+)/);
+  return m ? m[1] : (/^[a-zA-Z0-9]{22}$/.test(input.trim()) ? input.trim() : null);
+}
+
+async function loadPlaylist() {
+  const input = document.getElementById('sp-link').value.trim();
+  const pid = extractPID(input);
+  if (!pid) { alert('Geçerli bir Spotify playlist linki gir.'); return; }
+
+  const btn = document.getElementById('sp-btn');
+  btn.disabled = true;
+  document.getElementById('sp-list').innerHTML = skelRows(8);
+  document.getElementById('sp-info').style.display = 'none';
+
+  try {
+    const token = await getSpToken();
+
+    // Playlist bilgisi al
+    const infoRes = await fetch(`https://api.spotify.com/v1/playlists/${pid}`, {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    const infoText = await infoRes.text();
+    console.log('Spotify playlist response:', infoRes.status, infoText);
+    if (!infoRes.ok) throw new Error('Playlist hatası ' + infoRes.status + ': ' + infoText);
+    const info = JSON.parse(infoText);
+    console.log('Playlist info:', info);
+    const playlistName = info.name || 'Playlist';
+    const totalTracks = info.tracks?.total || 0;
+    console.log('Total tracks:', totalTracks);
+
+    // Şarkıları çek
+    let tracks = [], offset = 0;
+    while (offset < totalTracks) {
+      const r = await fetch(
+        `https://api.spotify.com/v1/playlists/${pid}/tracks?offset=${offset}&limit=50`,
+        { headers: { 'Authorization': 'Bearer ' + token } }
+      );
+      if (!r.ok) break;
+      const d = await r.json();
+      const items = d.items || [];
+      items.forEach(item => {
+        const t = item?.track;
+        if (!t || !t.name) return;
+        tracks.push({
+          name: t.name,
+          artist: (t.artists || []).map(a => a.name).join(', '),
+          thumb: t.album?.images?.[1]?.url || t.album?.images?.[0]?.url || '',
+          duration: fmt(Math.floor((t.duration_ms || 0) / 1000))
+        });
+      });
+      offset += 50;
+      if (!d.next) break;
+    }
+
+    spTracks = tracks;
+    const infoEl = document.getElementById('sp-info');
+    infoEl.style.display = 'block';
+    infoEl.innerHTML = `<strong>${playlistName}</strong> · ${tracks.length} şarkı`;
+
+    document.getElementById('sp-list').innerHTML = tracks.length
+      ? tracks.map((t, i) => `
+          <div class="ti" id="sp-${i}" onclick="playSpTrack(${i})">
+            <span class="ti-num">${i+1}</span>
+            <div class="playing-anim"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+            <img class="ti-thumb" src="${t.thumb}" alt="" onerror="this.style.opacity=0"/>
+            <div class="ti-info">
+              <div class="ti-name">${t.name}</div>
+              <div class="ti-art">${t.artist}</div>
+            </div>
+            <span class="ti-dur">${t.duration}</span>
+          </div>`).join('')
+      : `<div class="empty-msg"><span class="emj">😕</span>Playlist boş.</div>`;
+
+  } catch(e) {
+    document.getElementById('sp-list').innerHTML = `<div class="empty-msg"><span class="emj">⚠️</span>${e.message}</div>`;
+  }
+  btn.disabled = false;
+}
+
+async function doSearch() {
+  const q = document.getElementById('q').value.trim();
+  if (!q) return;
+  const listEl = document.getElementById('sr-list');
+  listEl.innerHTML = skelRows(6);
+  try {
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=10&key=${YT_KEY}`);
+    const d = await res.json();
+    if (d.error) throw new Error(d.error.message);
+    if (!d.items?.length) { listEl.innerHTML = `<div class="empty-msg"><span class="emj">😕</span>Bulunamadı.</div>`; return; }
+    srTracks = d.items.map(it => ({
+      name: it.snippet.title,
+      artist: it.snippet.channelTitle,
+      thumb: it.snippet.thumbnails.medium?.url || `https://i.ytimg.com/vi/${it.id.videoId}/mqdefault.jpg`,
+      videoId: it.id.videoId
+    }));
+    listEl.innerHTML = srTracks.map((t, i) => `
+      <div class="ti" id="sr-${i}" onclick="playSrTrack(${i})">
+        <img class="ti-thumb" src="${t.thumb}" alt="" onerror="this.style.opacity=0"/>
+        <div class="ti-info">
+          <div class="ti-name">${t.name}</div>
+          <div class="ti-art">${t.artist}</div>
+        </div>
+        <div class="playing-anim"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+      </div>`).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div class="empty-msg"><span class="emj">⚠️</span>${e.message}</div>`;
+  }
+}
+
+async function playSpTrack(idx) {
+  setActive('sp-'+idx);
+  const t = spTracks[idx];
+  updateNow(t.name, t.artist, t.thumb);
+  showLoading('YouTube\'da aranıyor...');
+  try {
+    // Birkaç farklı sorgu dene
+    const queries = [
+      `${t.name} ${t.artist} audio`,
+      `${t.name} ${t.artist}`,
+      `${t.name} lyrics`
+    ];
+    for (const q of queries) {
+      const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(q)}&type=video&maxResults=5&key=${YT_KEY}`);
+      const d = await res.json();
+      const vids = (d.items || []).map(it => it.id.videoId).filter(Boolean);
+      if (await tryVideos(vids)) return;
+    }
+    showErr('Embed destekleyen video bulunamadı. Başka şarkı dene.');
+  } catch(e) { showErr(e.message); }
+}
+
+async function playSrTrack(idx) {
+  setActive('sr-'+idx);
+  const t = srTracks[idx];
+  updateNow(t.name, t.artist, t.thumb);
+  showLoading('Yükleniyor...');
+  // Önce seçilen videoyu dene, olmazsa alternatif ara
+  const res = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(t.name+' '+t.artist)}&type=video&maxResults=5&key=${YT_KEY}`);
+  const d = await res.json();
+  const vids = [t.videoId, ...(d.items||[]).map(it=>it.id.videoId)].filter((v,i,a)=>v&&a.indexOf(v)===i);
+  if (!await tryVideos(vids)) showErr('Bu video oynatılamıyor. Başka sonucu dene.');
+}
+
+async function tryVideos(videoIds) {
+  // Batch olarak embeddable kontrolü yap
+  if (!videoIds.length) return false;
+  try {
+    const ids = videoIds.join(',');
+    const res = await fetch(`https://www.googleapis.com/youtube/v3/videos?part=status&id=${ids}&key=${YT_KEY}`);
+    const d = await res.json();
+    const embeddable = (d.items || []).filter(v => v.status?.embeddable).map(v => v.id);
+    // videoIds sırasını koru
+    const ordered = videoIds.filter(v => embeddable.includes(v));
+    if (ordered.length) { loadVideo(ordered[0]); return true; }
+  } catch(e) {}
+  // API başarısız olursa direkt dene
+  if (videoIds[0]) { loadVideo(videoIds[0]); return true; }
+  return false;
+}
+
+function loadVideo(videoId) {
+  hideLoading();
+  document.getElementById('main-empty').style.display = 'none';
+  const f = document.getElementById('vframe');
+  f.style.display = 'block';
+  f.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&iv_load_policy=3`;
+}
+
+function setActive(id) {
+  if (activeEl) activeEl.classList.remove('active');
+  activeEl = document.getElementById(id);
+  if (activeEl) activeEl.classList.add('active');
+}
+function updateNow(name, artist, thumb) {
+  document.getElementById('now-bar').style.display = 'flex';
+  document.getElementById('now-title').textContent = name;
+  document.getElementById('now-sub').textContent = artist;
+  document.getElementById('now-thumb').src = thumb || '';
+}
+function showLoading(txt) {
+  document.getElementById('main-empty').style.display = 'none';
+  document.getElementById('vframe').style.display = 'none';
+  const ol = document.getElementById('loading-overlay');
+  ol.style.display = 'flex';
+  document.getElementById('loading-text').textContent = txt;
+}
+function hideLoading() {
+  document.getElementById('loading-overlay').style.display = 'none';
+}
+function showErr(msg) {
+  hideLoading();
+  document.getElementById('main-empty').style.display = 'flex';
+  document.getElementById('main-empty').innerHTML = `<span class="emj">⚠️</span><p>${msg}</p>`;
+  document.getElementById('vframe').style.display = 'none';
+}
+const fmt = s => { s=Math.floor(s||0); return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`; };
+function skelRows(n) {
+  return Array.from({length:n}, () => `
+    <div class="srow">
+      <div class="skel" style="width:36px;height:36px;border-radius:7px;flex-shrink:0"></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+        <div class="skel" style="height:11px;width:65%"></div>
+        <div class="skel" style="height:9px;width:38%"></div>
+      </div>
+    </div>`).join('');
+}
+document.getElementById('q').addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+document.getElementById('sp-link').addEventListener('keydown', e => { if(e.key==='Enter') loadPlaylist(); });
+</script>
+</body>
+</html>
